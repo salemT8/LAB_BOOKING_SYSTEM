@@ -1,48 +1,25 @@
-puts "Welcome to Booking System"
+require_relative 'errors'
 
-bookings = []
+class Booking
+  STATUSES = ["active", "cancelled"]
 
-def menu
-  puts "\n--- Booking System ---"
-  puts "1. Add Booking"
-  puts "2. View Bookings"
-  puts "3. Exit"
-  print "Choose an option: "
-end
+  attr_reader :user, :resource, :status, :created_at
 
-loop do
-  menu
-  choice = gets.chomp.to_i
+  def initialize(user:, resource:)
+    raise BookingError, "Resource is not available" unless resource.available?
 
-  if choice == 1
-    print "Enter your name: "
-    name = gets.chomp
+    @user = user
+    @resource = resource
+    @status = "active"
+    @created_at = Time.now
 
-    print "Enter lab: "
-    lab = gets.chomp
+    resource.assign_booking(self)
+  end
 
-    print "Enter time: "
-    time = gets.chomp
+  def cancel
+    raise BookingError, "Booking already cancelled" if @status == "cancelled"
 
-    booking = { name: name, lab: lab, time: time }
-    bookings << booking
-
-    puts " Booking added!"
-
-  elsif choice == 2
-    if bookings.empty?
-      puts "No bookings yet."
-    else
-      bookings.each_with_index do |b, i|
-        puts "#{i+1}. #{b[:name]} - #{b[:lab]} at #{b[:time]}"
-      end
-    end
-
-  elsif choice == 3
-    puts "Chawww!"
-    break
-
-  else
-    puts "Invalid option. Try again."
+    @status = "cancelled"
+    @resource.clear_booking
   end
 end
